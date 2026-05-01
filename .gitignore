@@ -1,6 +1,7 @@
 # Secrets and credentials
 .env
 .env.*
+!.env.example
 auth.json
 *.key
 *.pem
