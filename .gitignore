@@ -14,6 +14,7 @@ cache/
 cron/.tick.lock
 memories/
 .local/
+bin/
 state.db*
 gateway.pid
 gateway.lock
