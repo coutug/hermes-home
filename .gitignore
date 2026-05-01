@@ -1,0 +1,20 @@
+# Secrets and credentials
+.env
+.env.*
+auth.json
+*.key
+*.pem
+
+# Runtime data
+sessions/
+logs/
+cache/
+*.sqlite3
+*.db
+*.log
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

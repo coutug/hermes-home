@@ -1,0 +1,50 @@
+# Hermes home configuration
+#
+# Keep secrets out of this repository. Put tokens and credentials in ~/.hermes/.env
+# or another untracked secret store.
+
+model:
+  default: null
+  provider: null
+  base_url: null
+  api_key: null
+  context_length: null
+
+agent:
+  max_turns: 90
+  tool_use_enforcement: true
+
+terminal:
+  backend: local
+  timeout: 180
+
+compression:
+  enabled: true
+  threshold: 0.50
+  target_ratio: 0.20
+
+display:
+  tool_progress: true
+  show_reasoning: false
+  show_cost: false
+
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  provider: null
+
+security:
+  tirith_enabled: true
+  website_blocklist: []
+
+checkpoints:
+  enabled: true
+  max_snapshots: 50
+
+delegation:
+  model: null
+  provider: null
+  base_url: null
+  api_key: null
+  max_iterations: 50
+  reasoning_effort: medium
