@@ -2,7 +2,9 @@
 
 This repository stores the non-secret Hermes home configuration for this environment and is the canonical source of truth.
 
-Legacy paths such as `/opt/data/config.yaml`, `/opt/data/.env`, and `/opt/data/auth.json` are kept as symlinks to files in this repo so Hermes continues to work while this repo remains the single place to edit configuration.
+Set `HERMES_HOME=/opt/data/hermes-home` so Hermes reads configuration directly from this repository.
+
+Legacy paths such as `/opt/data/config.yaml`, `/opt/data/.env`, and `/opt/data/auth.json` were previously used during migration, but the repo is now the canonical source of truth.
 
 ## Contents
 
