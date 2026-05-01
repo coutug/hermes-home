@@ -3,16 +3,32 @@
 .env.*
 !.env.example
 auth.json
+auth.lock
 *.key
 *.pem
 
-# Runtime data
+# Runtime state / platform-local data
 sessions/
 logs/
 cache/
+cron/.tick.lock
+memories/
+.local/
+state.db*
+gateway.pid
+gateway.lock
+gateway_state.json
+channel_directory.json
+discord_threads.json
+models_dev_cache.json
+.skills_prompt_snapshot.json
 *.sqlite3
 *.db
 *.log
+
+# Generated skill indexes/caches
+skills/index-cache/
+skills/.bundled_manifest
 
 # OS/editor noise
 .DS_Store
