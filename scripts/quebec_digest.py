@@ -20,13 +20,13 @@ from typing import Iterable
 
 FEEDS = [
     {"name": "Radio-Canada Québec", "url": "https://ici.radio-canada.ca/rss/4159", "source_tag": "public", "region": "quebec"},
-    {"name": "Radio-Canada Montréal", "url": "https://ici.radio-canada.ca/rss/1000524", "source_tag": "public", "region": "montreal"},
     {"name": "La Presse — Actualités", "url": "https://www.lapresse.ca/actualites/rss", "source_tag": "presse", "region": "quebec"},
     {"name": "La Presse — Politique", "url": "https://www.lapresse.ca/actualites/politique/rss", "source_tag": "politique", "region": "quebec"},
     {"name": "Noovo Info", "url": "https://www.noovo.info/arc/outboundfeeds/rss/", "source_tag": "tv", "region": "quebec"},
     {"name": "Journal de Montréal", "url": "https://www.journaldemontreal.com/rss.xml", "source_tag": "presse", "region": "quebec"},
     {"name": "Global News Montréal", "url": "https://globalnews.ca/montreal/feed/", "source_tag": "media-en", "region": "montreal"},
     {"name": "CityNews Montréal", "url": "https://montreal.citynews.ca/feed/", "source_tag": "media-en", "region": "montreal"},
+    {"name": "National Post Canada", "url": "https://nationalpost.com/category/news/canada/feed/", "source_tag": "canada", "region": "canada"},
 ]
 
 DEFAULT_STATE = Path(os.environ.get("QUEBEC_DIGEST_STATE", "/opt/data/hermes-home/cache/quebec_digest_state.json"))
@@ -349,7 +349,7 @@ def render(items: list[Item], meta: dict) -> str:
         lines += ["", "### Sources avec erreur"]
         for err in meta["errors"]:
             lines.append(f"- {err['source']}: `{err['error']}`")
-    lines += ["", f"_Sources: Radio-Canada Québec/Montréal, La Presse, Noovo, Journal de Montréal, Global, CityNews. Dédupe active. {meta.get('fetched', 0)} items lus, {meta.get('unique', 0)} uniques, {meta.get('new_candidates', 0)} nouveaux._"]
+    lines += ["", f"_Sources: Radio-Canada Québec, La Presse, Noovo, Journal de Montréal, Global News Montréal, CityNews Montréal, National Post Canada. Dédupe active. {meta.get('fetched', 0)} items lus, {meta.get('unique', 0)} uniques, {meta.get('new_candidates', 0)} nouveaux._"]
     return "\n".join(lines)
 
 
