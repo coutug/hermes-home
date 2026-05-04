@@ -100,6 +100,8 @@ cronjob(action='list')  # last_status should become ok, last_delivery_error null
 - `--max-items 0` can be useful to sync/seed state after manual cron run if script logic changed.
 - Do not commit runtime state (`cache/*.json`) or cron outputs. Add ignores for `cron/output/`, `__pycache__/`, `*.py[cod]` if missing.
 - Cron run is async-ish: `cronjob(action='run')` may schedule immediate run; call `cronjob(action='list')` after current time/short wait to verify `last_status`.
+- If user asks to move delivery to a named Discord channel, call `send_message(action='list')` first. If channel is absent but user provides raw channel ID, update cron with `deliver='discord:<channel_id>'`.
+- After delivery target change, run cron once and verify `deliver` value plus `last_delivery_error: null`. Commit `cron/jobs.json` target change.
 
 ## Repo Hygiene
 
