@@ -12,6 +12,7 @@ sessions/
 logs/
 cache/
 cron/.tick.lock
+cron/output/
 memories/
 .local/
 bin/
@@ -26,6 +27,8 @@ models_dev_cache.json
 *.sqlite3
 *.db
 *.log
+__pycache__/
+*.py[cod]
 
 # Generated skill indexes/caches
 skills/index-cache/
