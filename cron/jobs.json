@@ -75,7 +75,45 @@
         "chat_name": "Home / #hermes / Je voudrais plus facilement \u00eatre capable",
         "thread_id": "1499844971128160456"
       }
+    },
+    {
+      "id": "b3b223ff4fc2",
+      "name": "Qu\u00e9bec/Canada news digest \u2014 3x/week",
+      "prompt": "Tu es le job autonome de veille actualit\u00e9s Qu\u00e9bec/Canada pour coutz.\n\nLe script pr\u00e9-run imprime un digest Markdown d\u00e9j\u00e0 format\u00e9 en fran\u00e7ais. Ta t\u00e2che: livrer le digest dans Discord, sans demander de clarification.\n\nR\u00e8gles:\n- Si la sortie du script contient un digest commen\u00e7ant par `## Actualit\u00e9s Qu\u00e9bec/Canada`, renvoie exactement ce digest, sans pr\u00e9face ni commentaire.\n- Ne rajoute pas d'items non pr\u00e9sents dans la sortie script.\n- Ne promets pas d'actions futures.\n- Si le script indique `Aucun nouvel item fort`, renvoie quand m\u00eame le message tel quel.\n- Si des sources ont erreur, laisse la section `Sources avec erreur` telle quelle.\n\nSources suivies: Radio-Canada Qu\u00e9bec, Radio-Canada Montr\u00e9al, La Presse Actualit\u00e9s, La Presse Politique, Noovo Info, Journal de Montr\u00e9al, Global News Montr\u00e9al, CityNews Montr\u00e9al.\nObjectif produit: digest utile, faible bruit, max 8 items, tags, liens, impact, top action. D\u00e9dupe/caching g\u00e9r\u00e9 par script.",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "base_url": null,
+      "script": "quebec_digest.py",
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 8 * * 1,3,5",
+        "display": "0 8 * * 1,3,5"
+      },
+      "schedule_display": "0 8 * * 1,3,5",
+      "repeat": {
+        "times": null,
+        "completed": 1
+      },
+      "enabled": true,
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-05-04T20:49:52.207415+00:00",
+      "next_run_at": "2026-05-06T08:00:00+00:00",
+      "last_run_at": "2026-05-04T20:50:45.832512+00:00",
+      "last_status": "ok",
+      "last_error": null,
+      "last_delivery_error": null,
+      "deliver": "discord:1500940185519788124",
+      "origin": {
+        "platform": "discord",
+        "chat_id": "1499844971128160456",
+        "chat_name": "Home / #hermes / Je voudrais plus facilement \u00eatre capable",
+        "thread_id": "1499844971128160456"
+      }
     }
   ],
-  "updated_at": "2026-05-04T20:15:19.627495+00:00"
+  "updated_at": "2026-05-04T20:50:45.833489+00:00"
 }
