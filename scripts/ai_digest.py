@@ -130,6 +130,13 @@ def parse_date(value: str | None) -> dt.datetime | None:
         return parsed.astimezone(dt.timezone.utc)
     except Exception:
         pass
+    try:
+        parsed = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=dt.timezone.utc)
+        return parsed.astimezone(dt.timezone.utc)
+    except Exception:
+        pass
     for fmt in ("%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%d"):
         try:
             parsed = dt.datetime.strptime(value[:25], fmt)
@@ -206,11 +213,69 @@ def first_link(elem: ET.Element) -> str:
     return ""
 
 
+def meta_content(raw: str, key: str, attr: str = "property") -> str:
+    pattern = rf"<meta[^>]+{attr}=[\"']{re.escape(key)}[\"'][^>]+content=[\"']([^\"']+)"
+    match = re.search(pattern, raw, re.I | re.S)
+    if not match:
+        # Some sites emit content before name/property.
+        pattern = rf"<meta[^>]+content=[\"']([^\"']+)[\"'][^>]+{attr}=[\"']{re.escape(key)}[\"']"
+        match = re.search(pattern, raw, re.I | re.S)
+    return strip_html(match.group(1)) if match else ""
+
+
+def jsonld_article(raw: str) -> dict:
+    for match in re.finditer(r"<script[^>]+type=[\"']application/ld\+json[\"'][^>]*>(.*?)</script>", raw, re.I | re.S):
+        try:
+            data = json.loads(html.unescape(match.group(1)).strip())
+        except Exception:
+            continue
+        nodes = data if isinstance(data, list) else [data]
+        for node in nodes:
+            if isinstance(node, dict) and "Article" in str(node.get("@type", "")):
+                return node
+    return {}
+
+
+def clean_article_paragraphs(raw: str) -> list[str]:
+    clean = re.sub(r'<script.*?</script>|<style.*?</style>|<nav.*?</nav>|<footer.*?</footer>', ' ', raw, flags=re.I | re.S)
+    paragraphs = []
+    skip = (
+        "the batch andrew", "community forum", "ambassador", "subscribe", "share", "enroll today",
+        "new course", "please join", "start learning", "membership", "published may", "reading time",
+    )
+    for para in re.findall(r'<p[^>]*>(.*?)</p>', clean, re.I | re.S):
+        text = strip_html(para)
+        if len(text) < 60:
+            continue
+        low = text.lower()
+        if any(token in low for token in skip):
+            continue
+        paragraphs.append(text)
+    return paragraphs
+
+
+def batch_article_details(url: str, fallback_title: str) -> tuple[str, str | None, str]:
+    raw = fetch(url, timeout=20).decode("utf-8", "ignore")
+    article = jsonld_article(raw)
+    title = strip_html(str(article.get("headline") or "")) or meta_content(raw, "og:title") or fallback_title
+    published_dt = parse_date(str(article.get("datePublished") or article.get("dateModified") or ""))
+    published = published_dt.date().isoformat() if published_dt else None
+
+    description = strip_html(str(article.get("description") or "")) or meta_content(raw, "og:description") or meta_content(raw, "description", attr="name")
+    paragraphs = clean_article_paragraphs(raw)
+    # The Batch issue pages often start with Andrew Ng letter; prefer first concrete news block.
+    strong_news = next((p for p in paragraphs if re.search(r"^(what.?s new|the latest|a new|researchers|[A-Z][A-Za-z0-9 .'-]+ released|[A-Z][A-Za-z0-9 .'-]+ introduced)", p, re.I)), "")
+    newsy = strong_news or next((p for p in paragraphs if re.search(r"\b(why it matters|security implications|benchmark|data center|emissions|open weights|regulatory|frontier model)\b", p, re.I)), "")
+    summary_source = newsy or description or (paragraphs[0] if paragraphs else "")
+    summary = short_sentence(summary_source, title, limit=230)
+    return title, published, summary
+
+
 def parse_batch_page(feed: dict) -> list[Item]:
     """Scrape The Batch page because DeepLearning.AI exposes no working RSS feed."""
     raw = fetch(feed["url"], timeout=20).decode("utf-8", "ignore")
     links: dict[str, str] = {}
-    for match in re.finditer(r'href=["\']([^"\']*the-batch[^"\']*)["\']', raw, re.I):
+    for match in re.finditer(r"href=[\"']([^\"']*the-batch[^\"']*)[\"']", raw, re.I):
         url = html.unescape(match.group(1)).split("?")[0]
         if not url.startswith("http"):
             url = "https://www.deeplearning.ai" + url
@@ -224,11 +289,14 @@ def parse_batch_page(feed: dict) -> list[Item]:
         title = "The Batch " + slug.replace("-", " ").title() if slug.startswith("issue-") else slug.replace("-", " ").title()
         links[url] = title
     items: list[Item] = []
-    for url, title in list(links.items())[:30]:
-        summary = infer_impact(title)
+    for url, fallback_title in list(links.items())[:12]:
+        try:
+            title, published, summary = batch_article_details(url, fallback_title)
+        except Exception:
+            title, published, summary = fallback_title, None, infer_impact(fallback_title)
         tags = tag_item(title, summary, feed["source_tag"])
         score = score_item(title, summary, tags)
-        items.append(Item(title, url, feed["name"], None, summary, tags, score, item_key(url, title)))
+        items.append(Item(title, url, feed["name"], published, summary, tags, score, item_key(url, title)))
     return items
 
 
