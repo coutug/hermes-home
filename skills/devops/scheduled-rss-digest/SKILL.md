@@ -102,6 +102,9 @@ cronjob(action='list')  # last_status should become ok, last_delivery_error null
 - Cron run is async-ish: `cronjob(action='run')` may schedule immediate run; call `cronjob(action='list')` after current time/short wait to verify `last_status`.
 - If user asks to move delivery to a named Discord channel, call `send_message(action='list')` first. If channel is absent but user provides raw channel ID, update cron with `deliver='discord:<channel_id>'`.
 - After delivery target change, run cron once and verify `deliver` value plus `last_delivery_error: null`. Commit `cron/jobs.json` target change.
+- When one source dominates ranked output (e.g. OpenAI feed with many high-score AI posts), add a diverse picker with a per-source cap (usually max 3/source) before filling remaining slots. This keeps digests useful across all chosen sources.
+- For new digest topics, verify candidate feeds with live HTTP/XML checks before coding. Good source set = authoritative/vendor primary sources + research/open-source source; avoid only industry-news feeds unless user wants market noise.
+- AI digest source set that worked: OpenAI News `https://openai.com/news/rss.xml`, Google AI Blog `https://blog.google/technology/ai/rss/`, Google DeepMind `https://deepmind.google/blog/rss.xml`, MIT News AI `https://news.mit.edu/topic/mitartificial-intelligence2-rss.xml`, Hugging Face Blog `https://huggingface.co/blog/feed.xml`.
 
 ## Repo Hygiene
 
