@@ -23,11 +23,14 @@ from pathlib import Path
 from typing import Iterable
 
 FEEDS = [
-    {"name": "OpenAI News", "url": "https://openai.com/news/rss.xml", "source_tag": "openai"},
     {"name": "Google AI Blog", "url": "https://blog.google/technology/ai/rss/", "source_tag": "google"},
     {"name": "Google DeepMind Blog", "url": "https://deepmind.google/blog/rss.xml", "source_tag": "deepmind"},
     {"name": "MIT News — AI", "url": "https://news.mit.edu/topic/mitartificial-intelligence2-rss.xml", "source_tag": "research"},
     {"name": "Hugging Face Blog", "url": "https://huggingface.co/blog/feed.xml", "source_tag": "open-source"},
+    {"name": "Import AI", "url": "https://jack-clark.net/feed/", "source_tag": "analysis"},
+    # The Batch has no working RSS feed. Scrape article cards from public page.
+    {"name": "The Batch", "url": "https://www.deeplearning.ai/the-batch/", "source_tag": "newsletter", "mode": "scrape-batch"},
+    {"name": "The Decoder", "url": "https://the-decoder.com/feed/", "source_tag": "media"},
 ]
 
 DEFAULT_STATE = Path(os.environ.get("AI_DIGEST_STATE", "/opt/data/hermes-home/cache/ai_digest_state.json"))
@@ -54,9 +57,11 @@ PRIORITY = {
     "open-source": 50,
     "multimodal": 45,
     "infrastructure": 40,
-    "openai": 35,
     "google": 30,
     "deepmind": 30,
+    "analysis": 30,
+    "newsletter": 25,
+    "media": 20,
     "research_source": 25,
     "research": 55,
 }
@@ -201,7 +206,35 @@ def first_link(elem: ET.Element) -> str:
     return ""
 
 
+def parse_batch_page(feed: dict) -> list[Item]:
+    """Scrape The Batch page because DeepLearning.AI exposes no working RSS feed."""
+    raw = fetch(feed["url"], timeout=20).decode("utf-8", "ignore")
+    links: dict[str, str] = {}
+    for match in re.finditer(r'href=["\']([^"\']*the-batch[^"\']*)["\']', raw, re.I):
+        url = html.unescape(match.group(1)).split("?")[0]
+        if not url.startswith("http"):
+            url = "https://www.deeplearning.ai" + url
+        if any(part in url for part in ("/tag/", "/page/", "/author/", "/category/", "/about/")):
+            continue
+        if url.rstrip("/") == feed["url"].rstrip("/"):
+            continue
+        slug = url.rstrip("/").split("/")[-1]
+        if not (slug.startswith("issue-") or len(slug) > 18):
+            continue
+        title = "The Batch " + slug.replace("-", " ").title() if slug.startswith("issue-") else slug.replace("-", " ").title()
+        links[url] = title
+    items: list[Item] = []
+    for url, title in list(links.items())[:30]:
+        summary = infer_impact(title)
+        tags = tag_item(title, summary, feed["source_tag"])
+        score = score_item(title, summary, tags)
+        items.append(Item(title, url, feed["name"], None, summary, tags, score, item_key(url, title)))
+    return items
+
+
 def parse_feed(feed: dict) -> list[Item]:
+    if feed.get("mode") == "scrape-batch":
+        return parse_batch_page(feed)
     raw = fetch(feed["url"])
     root = ET.fromstring(raw)
     root_name = root.tag.split('}')[-1].lower()
@@ -367,7 +400,7 @@ def render(items: list[Item], meta: dict, weekly: bool = False) -> str:
             lines.append(f"- {err['source']}: `{err['error']}`")
 
     lines.append("")
-    lines.append(f"_Sources: OpenAI, Google AI, Google DeepMind, MIT News AI, Hugging Face. Dédupe active. {meta.get('fetched', 0)} items lus, {meta.get('unique', 0)} uniques, {meta.get('new_candidates', 0)} nouveaux._")
+    lines.append(f"_Sources: Google AI, DeepMind, MIT News AI, Hugging Face, Import AI, The Batch, The Decoder. Dédupe active. {meta.get('fetched', 0)} items lus, {meta.get('unique', 0)} uniques, {meta.get('new_candidates', 0)} nouveaux._")
     return "\n".join(lines)
 
 
